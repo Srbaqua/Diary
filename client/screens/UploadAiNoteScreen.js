@@ -1,3 +1,4 @@
+// screens/UploadAINoteScreen.js
 import React, { useState } from 'react';
 import { View, Text, Button, ActivityIndicator, ScrollView, Alert } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
@@ -32,7 +33,7 @@ export default function UploadAINoteScreen() {
         };
 
         setLoading(true);
-        const res = await uploadAINote("123", selectedFile); // Replace with dynamic userId if needed
+        const res = await uploadAINote("123", selectedFile); // Replace with actual userId
         setResponse(res?.note);
       } else {
         Alert.alert("No file selected");
@@ -57,7 +58,7 @@ export default function UploadAINoteScreen() {
         <View style={{ marginTop: 20 }}>
           <Text style={{ color: 'green', fontWeight: 'bold' }}>✅ Uploaded Successfully</Text>
 
-          <Text style={{ marginTop: 10, fontWeight: 'bold' }}>📄 Improved Note Content:</Text>
+          <Text style={{ marginTop: 10, fontWeight: 'bold' }}>📄 Structured Note Content:</Text>
           <Text style={{ marginBottom: 15 }}>{response.content}</Text>
 
           <Text style={{ fontWeight: 'bold' }}>🔍 Extracted Concepts:</Text>

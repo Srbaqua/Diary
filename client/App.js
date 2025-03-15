@@ -4,10 +4,12 @@ import { createStackNavigator } from '@react-navigation/stack';
 import HomeScreen from './screens/HomeScreen';
 import ConceptMapScreen from './screens/ConceptMapScreen';
 import UploadFileNoteScreen from './screens/UploadFileNoteScreen';
-
 import RelatedNotesScreen from './screens/RelatedNotesScreen';
-
 import UploadAINoteScreen from './screens/UploadAiNoteScreen';
+import LinkedNotesScreen from './screens/LinkedNotesScreen';
+import ConceptClusterScreen from './screens/ConceptClusterScreen';
+
+
 
 
 
@@ -20,6 +22,8 @@ export default function App() {
       <Stack.Navigator initialRouteName="Home">
         <Stack.Screen name="Home" component={HomeScreen} />
         {/* <Stack.Screen name="UploadNote" component={UploadFileNoteScreen} /> */}
+        <Stack.Screen name="LinkedNotes" component={LinkedNotesScreen} />
+        <Stack.Screen name="ConceptCluster" component={ConceptClusterScreen} />
         <Stack.Screen name="UploadAINote" component={UploadAINoteScreen} />
         <Stack.Screen name="RelatedNotes" component={RelatedNotesScreen} />
         <Stack.Screen name="ConceptMap" component={ConceptMapScreen} />

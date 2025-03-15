@@ -4,36 +4,44 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const getConceptsFromGemini = async (text) => {
   try {
     const prompt = `
-Extract key topics and concepts from the following content and return ONLY a valid JSON array like:
-["Topic1", "Topic2", "Concept A", "Concept B"]
+Extract the most important concepts and topics from this note content.
+Return only a plain JSON array like: ["Concept A", "Topic B", "Term C"].
+Do NOT add any extra text, code blocks or explanation.
 
-Content:
-"${text}"
+Note content:
+"""
+${text}
+"""
 `;
 
     const response = await axios.post(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
-        contents: [{ parts: [{ text: prompt }] }],
+        contents: [{ parts: [{ text: prompt }] }]
       }
     );
 
-    console.log("🔁 Gemini Response:", response.data);
+    let rawText = response.data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
 
-    // Try parsing the response text as a JSON array
-    const rawText = response.data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+    // Clean unnecessary wrappers
+    rawText = rawText.replace(/```json|```|\n/g, "").trim();
 
     let concepts = [];
+
     try {
       concepts = JSON.parse(rawText);
-    } catch (e) {
+    } catch (err) {
       console.warn("⚠ Gemini response not in JSON. Falling back to split.");
-      concepts = rawText.split(/\n|,|\*/).map(c => c.trim()).filter(Boolean);
+      concepts = rawText
+        .replace(/[\[\]"]/g, '') // remove brackets and quotes
+        .split(',')
+        .map(c => c.trim())
+        .filter(Boolean);
     }
 
     return Array.isArray(concepts) ? concepts.slice(0, 10) : [];
   } catch (err) {
-    console.error("❌ Gemini API error:", err.response?.data || err.message);
+    console.error("❌ Gemini Concept Extraction Error:", err.response?.data || err.message);
     return [];
   }
 };

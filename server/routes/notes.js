@@ -1,19 +1,16 @@
 // routes/notes.js
 const express = require("express");
-const { extractTextFromPDF } = require("../utils/pdfParser");
 const multer = require("multer");
 const fs = require("fs");
 const Note = require("../models/Note");
 const { getConceptsFromGemini } = require("../utils/gemini");
 const { improveNoteContentAI } = require("../utils/improveNote");
+const { structureNoteWithNLP } = require("../utils/structureNoteNLP");
 const { extractTextFromImage } = require("../utils/ocrParser");
 
 const router = express.Router();
-const upload = multer({ dest: "uploads/" }); // Stores files in uploads/
+const upload = multer({ dest: "uploads/" });
 
-/**
- * ✨ Upload AI-based Note (image/doc)
- */
 router.post("/upload-ai-note", upload.single("file"), async (req, res) => {
   try {
     console.log("📂 Received file:", req.file);
@@ -22,19 +19,21 @@ router.post("/upload-ai-note", upload.single("file"), async (req, res) => {
     const { userId } = req.body;
     let extractedText = "";
 
-    if (req.file && req.file.mimetype.includes("image")) {
+    if (req.file && req.file.mimetype && req.file.mimetype.includes("image")) {
       extractedText = await extractTextFromImage(req.file.path);
     } else if (req.file.mimetype === 'application/pdf') {
+      const { extractTextFromPDF } = require("../utils/pdfParser");
       extractedText = await extractTextFromPDF(req.file.path);
     } else {
-      extractedText = fs.readFileSync(req.file.path, "utf-8"); // fallback for .txt files
+      extractedText = fs.readFileSync(req.file.path, "utf-8");
     }
 
     const improvedText = await improveNoteContentAI(extractedText);
-    const concepts = await getConceptsFromGemini(improvedText);
+    const structuredText = await structureNoteWithNLP(improvedText);
+    const concepts = await getConceptsFromGemini(structuredText);
 
     const fileUrl = `/uploads/${req.file.filename}`;
-    const note = new Note({ userId, content: improvedText, fileUrl, concepts });
+    const note = new Note({ userId, content: structuredText, fileUrl, concepts });
     await note.save();
 
     res.json({ success: true, note });
@@ -44,16 +43,14 @@ router.post("/upload-ai-note", upload.single("file"), async (req, res) => {
   }
 });
 
-/**
- * 📝 Upload Text Note (Manual)
- */
 router.post("/upload-text", async (req, res) => {
   try {
     const { userId, content } = req.body;
     const improvedText = await improveNoteContentAI(content);
-    const concepts = await getConceptsFromGemini(improvedText);
+    const structuredText = await structureNoteWithNLP(improvedText);
+    const concepts = await getConceptsFromGemini(structuredText);
 
-    const note = new Note({ userId, content: improvedText, concepts });
+    const note = new Note({ userId, content: structuredText, concepts });
     await note.save();
 
     res.json({ success: true, note });
@@ -63,18 +60,15 @@ router.post("/upload-text", async (req, res) => {
   }
 });
 
-/**
- * 📁 Upload Regular File Note (image/audio/video) + description
- */
 router.post("/upload-file", upload.single("file"), async (req, res) => {
   try {
     const { userId, content } = req.body;
     const fileUrl = `/uploads/${req.file.filename}`;
-
     const improvedText = await improveNoteContentAI(content);
-    const concepts = await getConceptsFromGemini(improvedText);
+    const structuredText = await structureNoteWithNLP(improvedText);
+    const concepts = await getConceptsFromGemini(structuredText);
 
-    const note = new Note({ userId, content: improvedText, fileUrl, concepts });
+    const note = new Note({ userId, content: structuredText, fileUrl, concepts });
     await note.save();
 
     res.json({ success: true, note });
@@ -84,9 +78,6 @@ router.post("/upload-file", upload.single("file"), async (req, res) => {
   }
 });
 
-/**
- * 🔍 Get Notes Related to a Concept/Topic
- */
 router.get("/related/:topic", async (req, res) => {
   try {
     const { topic } = req.params;
@@ -98,9 +89,6 @@ router.get("/related/:topic", async (req, res) => {
   }
 });
 
-/**
- * 📊 Get Concept Graph Map
- */
 router.get("/concepts", async (req, res) => {
   try {
     const notes = await Note.find({});
