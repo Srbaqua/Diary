@@ -1,0 +1,1 @@
+export const API = "http://172.17.48.160:5000/api/notes";
