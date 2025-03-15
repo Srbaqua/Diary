@@ -31,7 +31,4 @@ server/.env.*
 .idea/
 *.iml
 
-# === Git ===
-.git/
-.gitignore
 
