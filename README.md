@@ -1,6 +1,6 @@
-# 📔 Diary
+# 📔 Memory Augmentation Journal(MAJ)
 
-**Diary** is a full-stack web application designed to help users maintain a personal diary. Built with a React frontend and an Express.js backend, it allows users to create, read, update, and delete diary entries seamlessly.
+**MAJ** is a full-stack web application designed to help users maintain a personal diary. Built with a React frontend and an Express.js backend, it allows users to create, read, update, and delete diary entries seamlessly.
 
 ---
 
